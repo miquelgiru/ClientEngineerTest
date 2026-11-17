@@ -28,6 +28,12 @@ namespace Platformer.Model
         public Transform spawnPoint;
 
         /// <summary>
+        /// The active game mode. It configures the player when the level starts
+        /// (see GameController). New modes are created with Create > Platformer > Game Mode.
+        /// </summary>
+        public GameMode gameMode;
+
+        /// <summary>
         /// A global jump modifier applied to all initial jump velocities.
         /// </summary>
         public float jumpModifier = 1.5f;

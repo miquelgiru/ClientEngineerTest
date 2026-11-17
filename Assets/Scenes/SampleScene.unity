@@ -250480,6 +250480,7 @@ MonoBehaviour:
     virtualCamera: {fileID: 1946717924}
     player: {fileID: 838423048}
     spawnPoint: {fileID: 421228357}
+    gameMode: {fileID: 11400000, guid: 17e805f4e6d5ec2468c4dcdd92d1f785, type: 2}
     jumpModifier: 0.9
     jumpDeceleration: 0
 --- !u!4 &1754240608

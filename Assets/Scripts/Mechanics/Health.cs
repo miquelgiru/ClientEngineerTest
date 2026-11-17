@@ -76,6 +76,16 @@ namespace Platformer.Mechanics
             currentHP = maxHP;
         }
 
+        /// <summary>
+        /// Set the maximum HP (at least 1) and refill the entity to it.
+        /// Used to configure the player from the active game mode.
+        /// </summary>
+        public void SetMaxHP(int value)
+        {
+            maxHP = Mathf.Max(1, value);
+            ResetToMax();
+        }
+
         void Awake()
         {
             currentHP = maxHP;

@@ -38,6 +38,18 @@ namespace Platformer.Mechanics
             sprites = idleAnimation;
         }
 
+        /// <summary>
+        /// Make the token collectable again with its idle animation, as at level start
+        /// (used by TokenController when the player respawns).
+        /// </summary>
+        public void ResetToIdle()
+        {
+            collected = false;
+            frame = 0;
+            sprites = idleAnimation;
+            gameObject.SetActive(true);
+        }
+
         void OnTriggerEnter2D(Collider2D other)
         {
             //only exectue OnPlayerEnter if the player collides with this token.

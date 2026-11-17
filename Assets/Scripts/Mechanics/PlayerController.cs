@@ -19,32 +19,24 @@ namespace Platformer.Mechanics
         public AudioClip ouchAudio;
 
         /// <summary>
-        /// Max horizontal speed of the player.
+        /// Max horizontal speed of the player. Set from the active GameMode at level
+        /// start; other systems (e.g. speed pads) may change it at runtime.
         /// </summary>
+        [HideInInspector]
         public float maxSpeed = 7;
         /// <summary>
-        /// Initial jump velocity at the start of a jump.
+        /// Initial jump velocity at the start of a jump. Set from the active GameMode.
         /// </summary>
+        [HideInInspector]
         public float jumpTakeOffSpeed = 7;
 
-        [Header("Knockback")]
-        [Tooltip("Horizontal speed of the knockback, applied opposite to the facing direction.")]
-        [Min(0f)]
-        [SerializeField] private float knockbackSpeed = 3f;
-        [Tooltip("Initial upward speed of the knockback. Gravity turns it into a small arc.")]
-        [Min(0f)]
-        [SerializeField] private float knockbackLift = 3f;
-        [Tooltip("Maximum time (seconds) the knockback overrides player input. It also ends on landing.")]
-        [Min(0f)]
-        [SerializeField] private float knockbackMaxDuration = 0.75f;
-
-        [Header("Hurt Immunity")]
-        [Tooltip("Seconds the player ignores enemy damage after being hurt.")]
-        [Min(0f)]
-        [SerializeField] private float hurtImmunityDuration = 1f;
-        [Tooltip("Blinks per second once the Hurt animation has finished, until immunity ends. 0 disables blinking.")]
-        [Min(0f)]
-        [SerializeField] private float immunityBlinkFrequency = 10f;
+        // Knockback and hurt immunity tuning. Set from the active GameMode
+        // (see ApplyGameModeTuning); these defaults are only a fallback.
+        float knockbackSpeed = 3f;
+        float knockbackLift = 3f;
+        float knockbackMaxDuration = 0.75f;
+        float hurtImmunityDuration = 1f;
+        float immunityBlinkFrequency = 10f;
 
         public JumpState jumpState = JumpState.Grounded;
         private bool stopJump;
@@ -92,6 +84,32 @@ namespace Platformer.Mechanics
             collider2d = GetComponent<Collider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             animator = GetComponent<Animator>();
+        }
+
+        /// <summary>
+        /// Configure the player from a game mode at level start: the tuning values and
+        /// the Health max HP (which also refills it).
+        /// </summary>
+        public void ApplyGameMode(GameMode mode)
+        {
+            ApplyGameModeTuning(mode);
+            health.SetMaxHP(mode.MaxHP);
+        }
+
+        /// <summary>
+        /// Copy the movement, knockback and immunity values from a game mode. Safe to
+        /// call at any time; used for live tuning in the Editor.
+        /// </summary>
+        public void ApplyGameModeTuning(GameMode mode)
+        {
+            maxSpeed = mode.MaxSpeed;
+            jumpTakeOffSpeed = mode.JumpTakeOffSpeed;
+            gravityModifier = mode.GravityModifier;
+            knockbackSpeed = mode.KnockbackSpeed;
+            knockbackLift = mode.KnockbackLift;
+            knockbackMaxDuration = mode.KnockbackMaxDuration;
+            hurtImmunityDuration = mode.HurtImmunityDuration;
+            immunityBlinkFrequency = mode.ImmunityBlinkFrequency;
         }
 
         /// <summary>

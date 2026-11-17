@@ -1,3 +1,4 @@
+using Platformer.Gameplay;
 using UnityEngine;
 
 namespace Platformer.Mechanics
@@ -18,6 +19,10 @@ namespace Platformer.Mechanics
 
         float nextFrameTime = 0;
 
+        // Every token registered at level start. `tokens` drops collected ones
+        // (set to null), so this copy is what a respawn restores.
+        TokenInstance[] allTokens;
+
         [ContextMenu("Find All Tokens")]
         void FindAllTokensInScene()
         {
@@ -35,6 +40,37 @@ namespace Platformer.Mechanics
             {
                 tokens[i].tokenIndex = i;
                 tokens[i].controller = this;
+            }
+            allTokens = (TokenInstance[])tokens.Clone();
+        }
+
+        void OnEnable()
+        {
+            PlayerSpawn.OnExecute += OnPlayerSpawn;
+        }
+
+        void OnDisable()
+        {
+            PlayerSpawn.OnExecute -= OnPlayerSpawn;
+        }
+
+        /// <summary>
+        /// When the player respawns, every collected token comes back.
+        /// </summary>
+        void OnPlayerSpawn(PlayerSpawn ev)
+        {
+            ResetAllTokens();
+        }
+
+        /// <summary>
+        /// Make every token collectable again and animate it, as at level start.
+        /// </summary>
+        public void ResetAllTokens()
+        {
+            for (var i = 0; i < allTokens.Length; i++)
+            {
+                allTokens[i].ResetToIdle();
+                tokens[i] = allTokens[i];
             }
         }
 
