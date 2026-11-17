@@ -40,9 +40,15 @@ namespace Platformer.Mechanics
         bool ignoringPlayer;
         Health health;
         Rigidbody2D body;
+        Animator animator;
         Vector3 startPosition;
 
         public Bounds Bounds => _collider.bounds;
+
+        /// <summary>
+        /// False once the enemy has been killed (EnemyDeath disables its collider).
+        /// </summary>
+        public bool IsAlive => _collider.enabled;
 
         void Awake()
         {
@@ -52,7 +58,17 @@ namespace Platformer.Mechanics
             spriteRenderer = GetComponent<SpriteRenderer>();
             health = GetComponent<Health>();
             body = GetComponent<Rigidbody2D>();
+            animator = GetComponent<Animator>();
             startPosition = transform.position;
+        }
+
+        /// <summary>
+        /// Feedback for a hit the enemy survives: hurt animation and sound.
+        /// </summary>
+        public void PlayHurt()
+        {
+            if (animator != null) animator.SetTrigger("hurt");
+            if (_audio && ouch) _audio.PlayOneShot(ouch);
         }
 
         void OnEnable()

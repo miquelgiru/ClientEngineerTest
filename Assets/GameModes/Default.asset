@@ -23,3 +23,4 @@ MonoBehaviour:
   knockbackMaxDuration: 0.75
   hurtImmunityDuration: 1
   immunityBlinkFrequency: 10
+  gun: {fileID: 11400000, guid: 52c2f65102e690e4d841f334a233fa6a, type: 2}

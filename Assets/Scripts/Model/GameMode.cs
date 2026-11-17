@@ -52,6 +52,10 @@ namespace Platformer.Model
         [Min(0f)]
         [SerializeField] private float immunityBlinkFrequency = 10f;
 
+        [Header("Weapon")]
+        [Tooltip("Gun the player carries in this mode (Create > Platformer > Gun). Leave empty for no gun.")]
+        [SerializeField] private Gun gun;
+
         public bool OverrideStartPosition => overrideStartPosition;
         public Vector2 StartPosition => startPosition;
         public int MaxHP => maxHP;
@@ -63,6 +67,7 @@ namespace Platformer.Model
         public float KnockbackMaxDuration => knockbackMaxDuration;
         public float HurtImmunityDuration => hurtImmunityDuration;
         public float ImmunityBlinkFrequency => immunityBlinkFrequency;
+        public Gun Gun => gun;
 
         /// <summary>
         /// Raised when the asset is edited in the Inspector. OnValidate only runs in

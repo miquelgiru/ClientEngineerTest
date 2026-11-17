@@ -49,6 +49,7 @@ namespace Platformer.Mechanics
         Vector2 move;
         SpriteRenderer spriteRenderer;
         internal Animator animator;
+        PlayerGun playerGun;
         readonly PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
         bool isKnockedBack;
@@ -77,6 +78,14 @@ namespace Platformer.Mechanics
         /// </summary>
         public bool IsImmune => Time.time < immuneUntil;
 
+        /// <summary>
+        /// True while the Hurt animation is playing, including the frame of the hit
+        /// before the Animator has entered the Hurt state.
+        /// </summary>
+        public bool IsHurtAnimationPlaying =>
+            animator.GetCurrentAnimatorStateInfo(0).shortNameHash == HurtState
+            || (IsImmune && !hurtAnimationStarted);
+
         void Awake()
         {
             health = GetComponent<Health>();
@@ -84,6 +93,7 @@ namespace Platformer.Mechanics
             collider2d = GetComponent<Collider2D>();
             spriteRenderer = GetComponent<SpriteRenderer>();
             animator = GetComponent<Animator>();
+            playerGun = GetComponent<PlayerGun>();
         }
 
         /// <summary>
@@ -110,6 +120,10 @@ namespace Platformer.Mechanics
             knockbackMaxDuration = mode.KnockbackMaxDuration;
             hurtImmunityDuration = mode.HurtImmunityDuration;
             immunityBlinkFrequency = mode.ImmunityBlinkFrequency;
+
+            // The mode decides which gun the player carries (null = no gun).
+            if (playerGun != null && playerGun.CurrentGun != mode.Gun)
+                playerGun.Equip(mode.Gun);
         }
 
         /// <summary>

@@ -19,9 +19,10 @@ namespace Platformer.Gameplay
         PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
         /// <summary>
-        /// A dead player can neither be hurt nor stomp enemies.
+        /// A dead player can neither be hurt nor stomp enemies, and an enemy killed
+        /// earlier in this frame (e.g. by a bullet) can neither be stomped again nor hurt the player.
         /// </summary>
-        public override bool Precondition() => player.health.IsAlive;
+        public override bool Precondition() => player.health.IsAlive && enemy.IsAlive;
 
         public override void Execute()
         {
@@ -29,25 +30,11 @@ namespace Platformer.Gameplay
 
             if (willHurtEnemy)
             {
+                // Stomping kills instantly, whatever the enemy's health (bullets use Health).
                 var enemyHealth = enemy.GetComponent<Health>();
-                if (enemyHealth != null)
-                {
-                    enemyHealth.Decrement();
-                    if (!enemyHealth.IsAlive)
-                    {
-                        Schedule<EnemyDeath>().enemy = enemy;
-                        player.Bounce(2);
-                    }
-                    else
-                    {
-                        player.Bounce(7);
-                    }
-                }
-                else
-                {
-                    Schedule<EnemyDeath>().enemy = enemy;
-                    player.Bounce(2);
-                }
+                if (enemyHealth != null) enemyHealth.Die();
+                Schedule<EnemyDeath>().enemy = enemy;
+                player.Bounce(2);
             }
             else
             {
