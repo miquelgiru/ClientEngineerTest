@@ -1,0 +1,2 @@
+# Question 3
+The game designer would like to create different game modes.  These modes would require a different configuration of game values like player health and starting position.  Implement the necessary changes to allow the game designer to be independent of a developer, add and run new game mode configurations.  It is expected the designer cab be working inside unity but will not write any code.

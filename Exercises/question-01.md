@@ -1,0 +1,2 @@
+# Question 1
+The game designer would like to enable the use of health on the Player so that the player can survive more than one collision with an enemy.  The player already has a health script attached, but it is not being used properly.  Refactor the damage code to use the player health value and to cause X damage on a collision with an enemy that would cause damage, where X is specified on a per enemy basis.
