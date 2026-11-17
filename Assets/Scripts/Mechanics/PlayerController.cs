@@ -34,7 +34,7 @@ namespace Platformer.Mechanics
         // (see ApplyGameModeTuning); these defaults are only a fallback.
         float knockbackSpeed = 3f;
         float knockbackLift = 3f;
-        float knockbackMaxDuration = 0.75f;
+        float knockbackMaxDuration = 3f;
         float hurtImmunityDuration = 1f;
         float immunityBlinkFrequency = 10f;
 
@@ -128,7 +128,8 @@ namespace Platformer.Mechanics
 
         /// <summary>
         /// Push the player backwards (opposite to the facing direction) in a small arc.
-        /// Input is ignored until the player lands or the knockback times out.
+        /// The player can't move until it lands; knockbackMaxDuration is only a safety
+        /// limit in case it never lands.
         /// </summary>
         public void Knockback()
         {

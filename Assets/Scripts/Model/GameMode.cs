@@ -40,9 +40,10 @@ namespace Platformer.Model
         [Tooltip("Initial upward speed of the knockback. Gravity turns it into a small arc.")]
         [Min(0f)]
         [SerializeField] private float knockbackLift = 3f;
-        [Tooltip("Maximum time (seconds) the knockback overrides player input. It also ends on landing.")]
+        [Tooltip("Safety limit (seconds). The knockback lasts until the player lands and the player can't move during it; " +
+                 "this only gives control back if the player never lands (e.g. stuck on a steep slope). Keep it longer than the arc.")]
         [Min(0f)]
-        [SerializeField] private float knockbackMaxDuration = 0.75f;
+        [SerializeField] private float knockbackMaxDuration = 3f;
 
         [Header("Hurt Immunity")]
         [Tooltip("Seconds the player ignores enemies (no damage, no collision) after being hurt.")]

@@ -20,7 +20,7 @@ MonoBehaviour:
   gravityModifier: 1
   knockbackSpeed: 3
   knockbackLift: 5
-  knockbackMaxDuration: 0.75
+  knockbackMaxDuration: 3
   hurtImmunityDuration: 0.5
   immunityBlinkFrequency: 10
   gun: {fileID: 0}
