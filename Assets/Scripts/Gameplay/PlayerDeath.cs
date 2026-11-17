@@ -28,6 +28,7 @@ namespace Platformer.Gameplay
             // player.collider.enabled = false;
             player.controlEnabled = false;
             player.CancelKnockback();
+            player.ClearHurtImmunity();
 
             if (player.audioSource && player.ouchAudio)
                 player.audioSource.PlayOneShot(player.ouchAudio);

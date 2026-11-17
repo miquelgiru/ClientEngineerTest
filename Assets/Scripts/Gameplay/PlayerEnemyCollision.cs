@@ -56,17 +56,22 @@ namespace Platformer.Gameplay
         }
 
         /// <summary>
-        /// Apply this enemy's contact damage to the player. Death is handled by
-        /// Health (HealthIsZero -> PlayerDeath); surviving schedules PlayerHurt.
+        /// Apply this enemy's contact damage to the player, unless the player is
+        /// still immune from a previous hit. Death is handled by Health
+        /// (HealthIsZero -> PlayerDeath); surviving starts immunity and schedules PlayerHurt.
         /// </summary>
         void HurtPlayer()
         {
             var damage = enemy.ContactDamage;
-            if (damage <= 0) return;
+            if (damage <= 0 || player.IsImmune) return;
 
             player.health.Decrement(damage);
-            if (player.health.IsAlive)
-                Schedule<PlayerHurt>().player = player;
+            if (!player.health.IsAlive) return;
+
+            // Start immunity here, not in PlayerHurt: other collision events processed
+            // in this same frame must already see the player as immune.
+            player.StartHurtImmunity();
+            Schedule<PlayerHurt>().player = player;
         }
     }
 }

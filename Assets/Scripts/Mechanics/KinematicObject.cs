@@ -35,6 +35,7 @@ namespace Platformer.Mechanics
         protected Rigidbody2D body;
         protected ContactFilter2D contactFilter;
         protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
+        Collider2D ownCollider;
 
         protected const float minMoveDistance = 0.001f;
         protected const float shellRadius = 0.01f;
@@ -74,6 +75,7 @@ namespace Platformer.Mechanics
         {
             body = GetComponent<Rigidbody2D>();
             body.isKinematic = true;
+            ownCollider = GetComponent<Collider2D>();
         }
 
         protected virtual void OnDisable()
@@ -125,6 +127,15 @@ namespace Platformer.Mechanics
 
         }
 
+        /// <summary>
+        /// Rigidbody2D.Cast does not respect Physics2D.IgnoreCollision, so movement
+        /// checks it explicitly: pairs that ignore each other can pass through.
+        /// </summary>
+        bool IsCollisionIgnored(Collider2D other)
+        {
+            return ownCollider != null && Physics2D.GetIgnoreCollision(ownCollider, other);
+        }
+
         void PerformMovement(Vector2 move, bool yMovement)
         {
             var distance = move.magnitude;
@@ -135,6 +146,8 @@ namespace Platformer.Mechanics
                 var count = body.Cast(move, contactFilter, hitBuffer, distance + shellRadius);
                 for (var i = 0; i < count; i++)
                 {
+                    if (IsCollisionIgnored(hitBuffer[i].collider)) continue;
+
                     var currentNormal = hitBuffer[i].normal;
 
                     //is this surface flat enough to land on?

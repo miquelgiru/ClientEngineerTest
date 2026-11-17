@@ -38,6 +38,14 @@ namespace Platformer.Mechanics
         [Min(0f)]
         [SerializeField] private float knockbackMaxDuration = 0.75f;
 
+        [Header("Hurt Immunity")]
+        [Tooltip("Seconds the player ignores enemy damage after being hurt.")]
+        [Min(0f)]
+        [SerializeField] private float hurtImmunityDuration = 1f;
+        [Tooltip("Blinks per second once the Hurt animation has finished, until immunity ends. 0 disables blinking.")]
+        [Min(0f)]
+        [SerializeField] private float immunityBlinkFrequency = 10f;
+
         public JumpState jumpState = JumpState.Grounded;
         private bool stopJump;
         [HideInInspector] public Collider2D collider2d { get; private set; }
@@ -56,6 +64,10 @@ namespace Platformer.Mechanics
         float knockbackDirection;
         float knockbackEndTime;
 
+        float immuneUntil;
+        bool hurtAnimationStarted;
+        static readonly int HurtState = Animator.StringToHash("Player-Hurt");
+
         public Bounds Bounds => collider2d.bounds;
 
         /// <summary>
@@ -67,6 +79,11 @@ namespace Platformer.Mechanics
         /// True while a knockback is overriding the player's movement.
         /// </summary>
         public bool IsKnockedBack => isKnockedBack;
+
+        /// <summary>
+        /// True while the player ignores enemy damage after being hurt.
+        /// </summary>
+        public bool IsImmune => Time.time < immuneUntil;
 
         void Awake()
         {
@@ -104,6 +121,24 @@ namespace Platformer.Mechanics
             isKnockedBack = false;
         }
 
+        /// <summary>
+        /// Start the post-hit immunity window. The sprite blinks once the Hurt
+        /// animation has finished, until the window ends.
+        /// </summary>
+        public void StartHurtImmunity()
+        {
+            immuneUntil = Time.time + hurtImmunityDuration;
+            hurtAnimationStarted = false;
+        }
+
+        /// <summary>
+        /// End the post-hit immunity window early (e.g. when the player dies).
+        /// </summary>
+        public void ClearHurtImmunity()
+        {
+            immuneUntil = 0f;
+        }
+
         protected override void Update()
         {
             if (controlEnabled && !isKnockedBack)
@@ -123,7 +158,29 @@ namespace Platformer.Mechanics
             }
             if (isKnockedBack) UpdateKnockback();
             UpdateJumpState();
+            UpdateImmunityBlink();
             base.Update();
+        }
+
+        /// <summary>
+        /// While immune, blink the sprite once the Hurt animation has played and
+        /// left its state; always visible otherwise.
+        /// </summary>
+        void UpdateImmunityBlink()
+        {
+            var visible = true;
+            if (IsImmune)
+            {
+                // The hurt trigger is processed by the Animator after this frame's
+                // Update, so first wait for the Hurt state to start, then to end.
+                if (animator.GetCurrentAnimatorStateInfo(0).shortNameHash == HurtState)
+                    hurtAnimationStarted = true;
+                else if (hurtAnimationStarted && immunityBlinkFrequency > 0f)
+                    visible = Mathf.Repeat(Time.time * immunityBlinkFrequency, 1f) < 0.5f;
+            }
+
+            if (spriteRenderer.enabled != visible)
+                spriteRenderer.enabled = visible;
         }
 
         void UpdateKnockback()

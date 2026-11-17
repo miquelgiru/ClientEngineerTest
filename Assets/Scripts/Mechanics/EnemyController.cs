@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using Platformer.Gameplay;
+using Platformer.Model;
 using UnityEngine;
 using static Platformer.Core.Simulation;
 
@@ -30,6 +31,9 @@ namespace Platformer.Mechanics
         internal AudioSource _audio;
         SpriteRenderer spriteRenderer;
 
+        readonly PlatformerModel model = GetModel<PlatformerModel>();
+        bool ignoringPlayer;
+
         public Bounds Bounds => _collider.bounds;
 
         void Awake()
@@ -53,11 +57,31 @@ namespace Platformer.Mechanics
 
         void Update()
         {
+            UpdatePlayerCollision();
             if (path != null)
             {
                 if (mover == null) mover = path.CreateMover(control.maxSpeed * 0.5f);
                 control.move.x = Mathf.Clamp(mover.Position.x - transform.position.x, -1, 1);
             }
+        }
+
+        /// <summary>
+        /// While the player is immune, this enemy and the player pass through each
+        /// other (no contacts, no blocking). The pair keeps ignoring each other until
+        /// they stop overlapping, so neither gets stuck inside the other.
+        /// Dead enemies (collider disabled by EnemyDeath) are skipped.
+        /// </summary>
+        void UpdatePlayerCollision()
+        {
+            var player = model.player;
+            if (player == null || !_collider.enabled) return;
+
+            var ignore = player.IsImmune
+                || (ignoringPlayer && _collider.Distance(player.collider2d).isOverlapped);
+            if (ignore == ignoringPlayer) return;
+
+            Physics2D.IgnoreCollision(_collider, player.collider2d, ignore);
+            ignoringPlayer = ignore;
         }
 
     }
