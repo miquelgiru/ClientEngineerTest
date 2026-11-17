@@ -27,11 +27,22 @@ namespace Platformer.Mechanics
         /// </summary>
         public float jumpTakeOffSpeed = 7;
 
+        [Header("Knockback")]
+        [Tooltip("Horizontal speed of the knockback, applied opposite to the facing direction.")]
+        [Min(0f)]
+        [SerializeField] private float knockbackSpeed = 3f;
+        [Tooltip("Initial upward speed of the knockback. Gravity turns it into a small arc.")]
+        [Min(0f)]
+        [SerializeField] private float knockbackLift = 3f;
+        [Tooltip("Maximum time (seconds) the knockback overrides player input. It also ends on landing.")]
+        [Min(0f)]
+        [SerializeField] private float knockbackMaxDuration = 0.75f;
+
         public JumpState jumpState = JumpState.Grounded;
         private bool stopJump;
-        /*internal new*/ public Collider2D collider2d;
-        /*internal new*/ public AudioSource audioSource;
-        public Health health;
+        [HideInInspector] public Collider2D collider2d { get; private set; }
+        [HideInInspector] public AudioSource audioSource { get; private set; }
+        [HideInInspector] public Health health { get; private set; }
         public bool controlEnabled = true;
 
         bool jump;
@@ -40,7 +51,22 @@ namespace Platformer.Mechanics
         internal Animator animator;
         readonly PlatformerModel model = Simulation.GetModel<PlatformerModel>();
 
+        bool isKnockedBack;
+        bool knockbackLeftGround;
+        float knockbackDirection;
+        float knockbackEndTime;
+
         public Bounds Bounds => collider2d.bounds;
+
+        /// <summary>
+        /// 1 when the player faces right, -1 when facing left.
+        /// </summary>
+        public float FacingDirection => spriteRenderer.flipX ? -1f : 1f;
+
+        /// <summary>
+        /// True while a knockback is overriding the player's movement.
+        /// </summary>
+        public bool IsKnockedBack => isKnockedBack;
 
         void Awake()
         {
@@ -51,9 +77,36 @@ namespace Platformer.Mechanics
             animator = GetComponent<Animator>();
         }
 
+        /// <summary>
+        /// Push the player backwards (opposite to the facing direction) in a small arc.
+        /// Input is ignored until the player lands or the knockback times out.
+        /// </summary>
+        public void Knockback()
+        {
+            knockbackDirection = -FacingDirection;
+            knockbackEndTime = Time.time + knockbackMaxDuration;
+            knockbackLeftGround = false;
+            isKnockedBack = true;
+
+            // Cancel any pending jump input so it can't cut the arc short.
+            jump = false;
+            stopJump = false;
+            jumpState = JumpState.InFlight;
+            Bounce(knockbackLift);
+        }
+
+        /// <summary>
+        /// Stop any active knockback (e.g. when the player dies), so it no longer
+        /// drives horizontal movement.
+        /// </summary>
+        public void CancelKnockback()
+        {
+            isKnockedBack = false;
+        }
+
         protected override void Update()
         {
-            if (controlEnabled)
+            if (controlEnabled && !isKnockedBack)
             {
                 move.x = Input.GetAxis("Horizontal");
                 if (jumpState == JumpState.Grounded && Input.GetButtonDown("Jump"))
@@ -68,8 +121,20 @@ namespace Platformer.Mechanics
             {
                 move.x = 0;
             }
+            if (isKnockedBack) UpdateKnockback();
             UpdateJumpState();
             base.Update();
+        }
+
+        void UpdateKnockback()
+        {
+            // IsGrounded is only refreshed in FixedUpdate, so wait until the player
+            // has actually left the ground before treating "grounded" as a landing.
+            if (!IsGrounded) knockbackLeftGround = true;
+
+            var landed = knockbackLeftGround && IsGrounded;
+            if (landed || Time.time >= knockbackEndTime)
+                isKnockedBack = false;
         }
 
         void UpdateJumpState()
@@ -90,7 +155,8 @@ namespace Platformer.Mechanics
                     }
                     break;
                 case JumpState.InFlight:
-                    if (IsGrounded)
+                    // During a knockback, landing is detected once the knockback ends.
+                    if (IsGrounded && !isKnockedBack)
                     {
                         Schedule<PlayerLanded>().player = this;
                         jumpState = JumpState.Landed;
@@ -127,6 +193,8 @@ namespace Platformer.Mechanics
             animator.SetFloat("velocityX", Mathf.Abs(velocity.x) / maxSpeed);
 
             targetVelocity = move * maxSpeed;
+            if (isKnockedBack)
+                targetVelocity.x = knockbackDirection * knockbackSpeed;
         }
 
         public enum JumpState

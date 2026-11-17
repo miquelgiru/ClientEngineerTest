@@ -36,7 +36,7 @@
 ## Exercise map
 | # | Goal (one line) | Depends on | Systems/files touched | Status |
 |---|-----------------|------------|-----------------------|--------|
-| 1 | Player uses Health; enemy contact deals per-enemy X damage | — | `Health` (damage amount, `CurrentHP`, `SetMax`, `ResetToMax`), `EnemyController` (+contact damage), `PlayerEnemyCollision`, `HealthIsZero` (route by owner), `PlayerDeath` (guard), `PlayerSpawn` (full heal), new `PlayerHurt` event, Player prefab maxHP | todo |
+| 1 | Player uses Health; enemy contact deals per-enemy X damage | — | `Health` (`Decrement(int)`, `CurrentHP`, `ResetToMax`), `EnemyController` (`contactDamage`/`ContactDamage`), `PlayerEnemyCollision` (Precondition + `HurtPlayer`), `HealthIsZero` (player only → `PlayerDeath`), `PlayerDeath` (Precondition !IsAlive), `PlayerEnteredDeathZone` (`health.Die()`), `PlayerSpawn` (`ResetToMax`), new `PlayerHurt` event (→ `PlayerController.Knockback()`, `FacingDirection`), Player prefab maxHP 3 | done (awaiting Play check) |
 | 2 | 1 s player immunity after an enemy hit | 1 | `PlayerEnemyCollision` / `PlayerHurt`, player invulnerable state (timestamp or scheduled end event), optional blink view | todo |
 | 3 | Designer-made game modes (player HP, start position, …) created and run without code | 1 (maxHP), 2 (immunity duration) | new `GameModeConfig` SO (`[CreateAssetMenu]`, + optional catalog), applied at start via `GameController` (or sibling loader) → model + player, sample mode assets | todo |
 | 4 | Gun: keypress fires a bullet in facing direction; bullet deals player-specific Y damage to enemies | 1 (damage amounts, `HealthIsZero` routing), 3 (Y in mode, optional) | new `PlayerGun` component, `Bullet` prefab + script (`UnityEngine.Pool`), `BulletHitEnemy` event, Health on Enemy prefab, `PlayerController.FacingDirection` | todo |
@@ -47,7 +47,7 @@ Shared systems used by several exercises (design these carefully the first time)
 - **`GameController`** = single entry point for configuration (Q3 game mode applied there; Q2 immunity duration and Q4 bullet damage can be overridden by the mode).
 
 Open decisions (recommendations, confirm before each exercise):
-- Q1: X = per-instance field on `EnemyController` (prefab default 1); Player maxHP default 3; non-lethal hit = hurt anim + ouch sound + small knockback.
+- Q1 (decided): X = per-instance `contactDamage` on `EnemyController` (prefab default 1, 0 = harmless); Player maxHP 3; non-lethal hit = hurt anim + ouch sound + **knockback** (`PlayerController.Knockback()`: small gravity arc opposite to the facing direction, input ignored until landing or `knockbackMaxDuration`, `jumpState = InFlight`; animator untouched); death zones kill regardless of HP; the only way the player dies is Health reaching 0.
 - Q2: immunity blocks enemy damage only (death zones still kill); serialized 1 s; sprite blink; physics collisions unchanged.
 - Q3: designer drags a `GameModeConfig` into `GameController` and presses Play (menu selection only if time allows); start position = Vector2 in the SO, also used for respawn.
 - Q4: fire with existing "Fire1" (Left Ctrl / Mouse 0); Y on `PlayerGun`, overridable by mode; enemy maxHP default and whether stomp still one-shots — TBD.

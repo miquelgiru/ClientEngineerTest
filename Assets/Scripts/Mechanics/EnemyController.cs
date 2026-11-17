@@ -15,6 +15,15 @@ namespace Platformer.Mechanics
         public PatrolPath path;
         public AudioClip ouch;
 
+        [Tooltip("Damage dealt to the player when this enemy hits them. Stomping the enemy is always safe.")]
+        [Min(0)]
+        [SerializeField] private int contactDamage = 1;
+
+        /// <summary>
+        /// Damage dealt to the player on a collision that hurts the player.
+        /// </summary>
+        public int ContactDamage => contactDamage;
+
         internal PatrolPath.Mover mover;
         internal AnimationController control;
         internal Collider2D _collider;
